@@ -9,38 +9,32 @@ def parseLine(inputString):
     lines = inputString.split(',')
     return (int(lines[0]), int(lines[1]), float(lines[2]))
 
-def getNumTuples(input):
-    return len(input)
-
 def sgd(V, W, H):
-    f = open('output', 'w')
-    f.write("came herexxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
     epsilon = pow((epoch + tau.value), -beta.value)
     Wmapped = {int(key):value for (key, value) in [(elem[0], elem[1]) for elem in W]}
-    f.write('Wmap')
-    #f.write(str(Wmapped))
-    f.write("\n")
     Hmapped = {int(key):value for (key, value) in [(elem[0], elem[1]) for elem in H]}
-    #f.write('Hmap')
-    f.write(str(Hmapped))
-    f.write("\n")
-    Wnew = []
-    Hnew = []
+    #Wnew = {}
+    #Hnew = {}
     for rating in V:
         vij = rating[2]
+        #f.write("i is" + str(rating[0]))
+        #f.write("j is" + str(rating[1]))
         Wi = Wmapped[rating[0]]
         Hj = Hmapped[rating[1]]
         whProd = np.dot(Wi, Hj)
+        #f.write("dot prod is " + str(whProd))
+        #f.write("v is " + str(vij))
+        #f.write('\n')
         factor = (whProd - vij)*2
         Wloss = factor*Hj
         Hloss = factor*Wi
-        Wprime = Wi - epsilon*Wloss + (2*LAMBDA/Ni[rating[0]] * Wi)
-        Hprime = Hj - epsilon*Hloss + (2*LAMBDA/Nj[rating[1]] * Hj)
-        Wnew.append((rating[0], Wprime))
-        Hnew.append((rating[1], Hprime))
-    f.flush()
-    f.close()
-    return Wnew, Hnew
+        Wprime = Wi - epsilon*Wloss + (2*LAMBDA/Ni[rating[0]]) * Wi
+        Hprime = Hj - epsilon*Hloss + (2*LAMBDA/Nj[rating[1]]) * Hj
+        Wmapped[rating[0]] = Wprime
+        Hmapped[rating[1]] = Hprime
+    #f.flush()
+    #f.close()
+    return Wmapped, Hmapped
 
 def myMapFunc(iterator):
     result = []
@@ -51,8 +45,7 @@ def myMapFunc(iterator):
         H = elem[1][2]                                                                          # Extract H
         Wnew, Hnew = sgd(V, W, H)
         result.append((Wnew, Hnew))
-    yield iter(result)
-
+    yield result
 
 
 if __name__ == "__main__":
@@ -96,8 +89,8 @@ if __name__ == "__main__":
     NUM_ROWS = vTuples.map(lambda x : x[0]).max()
 
     # Create and initialize W and H matrices
-    Wcurr = np.random.ranf(size=(NUM_ROWS, FACTORS))*10.0                # Num of Users X Factors = W
-    Hcurr = np.random.ranf(size=(NUM_COLS, FACTORS))*10.0                # Num of Users X Factors = H'
+    Wcurr = np.random.ranf(size=(NUM_ROWS, FACTORS))                    # Num of Users X Factors = W
+    Hcurr = np.random.ranf(size=(NUM_COLS, FACTORS))                    # Num of Users X Factors = H'
 
     # TODO : Update NUM_STRATA
     NUM_STRATA = NUM_WORKERS                                             # Number of strata
@@ -114,17 +107,29 @@ if __name__ == "__main__":
     tau = sc.broadcast(TAU)
     beta = sc.broadcast(BETA)
 
+    Wpaired = rowIndices.zip(sc.parallelize(Wcurr))
+    Hpaired = colIndices.zip(sc.parallelize(Hcurr))
+
+    f = open('output1', 'w')
     for epoch in range(1, ITERATIONS+1):
         for stratum in range(NUM_STRATA):
+            f.write('W before iteration is ' + str(Wpaired.collect()))
+            f.write('H before iteration is ' + str(Hpaired.collect()))
             # Build keyed version of W
-            W_keyed = rowIndices.zip(sc.parallelize(Wcurr)).keyBy(lambda x : x[0] % NUM_WORKERS).partitionBy(NUM_WORKERS)
+            W_keyed = Wpaired.keyBy(lambda x : x[0] % NUM_WORKERS).partitionBy(NUM_WORKERS)     # perhaps optimize here more
             # Build keyed version of H
-            H_keyed = colIndices.zip(sc.parallelize(Hcurr)).keyBy(lambda x : (x[0]+stratum) % NUM_WORKERS).partitionBy(NUM_WORKERS)
+            H_keyed = Hpaired.keyBy(lambda x : (x[0]+stratum) % NUM_WORKERS).partitionBy(NUM_WORKERS)
             # Build keyed version of V (only based on row, columns will be filtered out in the map function)
-            V_keyed = vTuples.keyBy(lambda x : x[0] % NUM_WORKERS).partitionBy(NUM_WORKERS)
+            V_keyed = vTuples.keyBy(lambda x : x[0] % NUM_WORKERS).partitionBy(NUM_WORKERS)     # perhaps optimize here more
             # Group W, H and V
-            result = V_keyed.groupWith(W_keyed, H_keyed).mapPartitions(myMapFunc).collectAsMap()
+            result = V_keyed.groupWith(W_keyed, H_keyed).mapPartitions(myMapFunc).collect()
+            #f.write('result type is ' + str(type(result[0][0])))
+            #f.write('len of result is ' + str(len(result[0][0])))
+            # list of 1 list of 1 tuple of 2 elements
+            Wpaired = sorted(result[0][0][0].items(), key = lambda tup : tup[0])      #  list of tuples, sort is a redundant operation
+            Hpaired = sorted(result[0][0][1].items(), key = lambda tup : tup[0])      #  list of tuples
 
+    f.close()
 
 
 
