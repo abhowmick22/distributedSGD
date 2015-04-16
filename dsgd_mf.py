@@ -26,10 +26,10 @@ def sgd(V, W, H):
         #f.write("v is " + str(vij))
         #f.write('\n')
         factor = (whProd - vij)*2
-        Wloss = factor*Hj
-        Hloss = factor*Wi
-        Wprime = Wi - epsilon*Wloss + (2*LAMBDA/Ni[rating[0]]) * Wi
-        Hprime = Hj - epsilon*Hloss + (2*LAMBDA/Nj[rating[1]]) * Hj
+        Wloss = factor*Hj + (2*LAMBDA/Ni[rating[0]]) * Wi
+        Hloss = factor*Wi + (2*LAMBDA/Nj[rating[1]]) * Hj
+        Wprime = Wi - epsilon*Wloss
+        Hprime = Hj - epsilon*Hloss
         Wmapped[rating[0]] = Wprime
         Hmapped[rating[1]] = Hprime
     #f.flush()
@@ -110,11 +110,11 @@ if __name__ == "__main__":
     Wpaired = rowIndices.zip(sc.parallelize(Wcurr))
     Hpaired = colIndices.zip(sc.parallelize(Hcurr))
 
-    f = open('output1', 'w')
+    f = open('output', 'w')
     for epoch in range(1, ITERATIONS+1):
         for stratum in range(NUM_STRATA):
-            f.write('W before iteration is ' + str(Wpaired.collect()))
-            f.write('H before iteration is ' + str(Hpaired.collect()))
+            #f.write('W before iteration is ' + str(Wpaired.collect()))
+            #f.write('H before iteration is ' + str(Hpaired.collect()))
             # Build keyed version of W
             W_keyed = Wpaired.keyBy(lambda x : x[0] % NUM_WORKERS).partitionBy(NUM_WORKERS)     # perhaps optimize here more
             # Build keyed version of H
@@ -128,6 +128,8 @@ if __name__ == "__main__":
             # list of 1 list of 1 tuple of 2 elements
             Wpaired = sorted(result[0][0][0].items(), key = lambda tup : tup[0])      #  list of tuples, sort is a redundant operation
             Hpaired = sorted(result[0][0][1].items(), key = lambda tup : tup[0])      #  list of tuples
+            f.write('W after iteration is ' + str(Wpaired))
+            f.write('H after iteration is ' + str(Hpaired))
 
     f.close()
 

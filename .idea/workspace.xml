@@ -37,8 +37,8 @@
       <file leaf-file-name="dsgd_mf.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/dsgd_mf.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.8146965" vertical-offset="0" max-vertical-offset="2220">
-              <caret line="34" column="14" selection-start-line="34" selection-start-column="14" selection-end-line="34" selection-end-column="14" />
+            <state vertical-scroll-proportion="0.76677316" vertical-offset="1470" max-vertical-offset="2250">
+              <caret line="130" column="57" selection-start-line="130" selection-start-column="57" selection-end-line="130" selection-end-column="57" />
               <folding>
                 <element signature="e#25#40#0" expanded="true" />
               </folding>
@@ -478,8 +478,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/dsgd_mf.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.8146965" vertical-offset="0" max-vertical-offset="2220">
-          <caret line="34" column="14" selection-start-line="34" selection-start-column="14" selection-end-line="34" selection-end-column="14" />
+        <state vertical-scroll-proportion="0.76677316" vertical-offset="1470" max-vertical-offset="2250">
+          <caret line="130" column="57" selection-start-line="130" selection-start-column="57" selection-end-line="130" selection-end-column="57" />
           <folding>
             <element signature="e#25#40#0" expanded="true" />
           </folding>
