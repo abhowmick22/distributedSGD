@@ -10,18 +10,18 @@ Python 2.7, Numpy, Spark 1.3.0
 ## Instructions
 Using submit script (Ensure your PATH points to the spark bin directory)
 
-spark-submit dsgd\_mf.py <num\_factors> <num\_workers> <num\_iterations>
-<beta_value> <lambda_value>
-<inputV\_filepath> <outputW\_filepath> <outputH\_filepath>
+spark-submit dsgd\_mf.py `<num\_factors>` `<num\_workers>` `<num\_iterations>`
+`<beta_value>` `<lambda_value>`
+`<inputV\_filepath>` `<outputW\_filepath>` `<outputH\_filepath>`
 
 ## Input
 The contents of the input file should be in the following triples format:
 
-<user\_1>,<movie\_1>,<rating\_11>
+`<user\_1>`,`<movie\_1>`,`<rating\_11>`
 ...
-<user\_i>,<movie\_j>,<rating\_ij>
+`<user\_i>`,`<movie\_j>`,`<rating\_ij>`
 ...
-<user\_M>,<movie\_N>,<rating\_ij>
+`<user\_M>`,`<movie\_N>`,`<rating\_ij>`
 
 Where, user i is an integer ID for the ith user, movie j is an integer ID for 
 the jth movie, and rating ij is the rating given by user i to movie j.
