@@ -18,9 +18,13 @@ spark-submit dsgd\_mf.py `<num_factors>` `<num_workers>` `<num_iterations>`
 The contents of the input file should be in the following triples format:
 
 `<user_1>`,`<movie_1>`,`<rating_11>`
+
 ...
+
 `<user_i>`,`<movie_j>`,`<rating_ij>`
+
 ...
+
 `<user_M>`,`<movie_N>`,`<rating_ij>`
 
 Where, user i is an integer ID for the ith user, movie j is an integer ID for 
