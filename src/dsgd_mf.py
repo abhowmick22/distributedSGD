@@ -5,6 +5,58 @@ import argparse
 import os
 from pyspark import SparkContext, SparkConf
 import numpy as np
+from scipy import sparse
+import csv
+
+# load a factor matrix from non-sparse, csv file
+def LoadMatrix(csvfile):
+	data = np.genfromtxt(csvfile, delimiter=',')
+	return np.matrix(data)
+
+# load training matrix from sparse, csv file
+def LoadSparseMatrix(csvfile):
+        val = []
+        row = []
+        col = []
+        select = []
+        f = open(csvfile)
+        reader = csv.reader(f)
+        for line in reader:
+                row.append( int(line[0])-1 )
+                col.append( int(line[1])-1 )
+                val.append( int(line[2]) )
+                select.append( (int(line[0])-1, int(line[1])-1) )
+        return sparse.csr_matrix( (val, (row, col)) ), select
+
+# compute reconstruction error
+def CalculateError(V, W, H, select):
+        diff = V-W*H
+        error = 0
+        for row, col in select:
+                error += diff[row, col]*diff[row, col]
+        return error/len(select)
+
+def writeResults(WFILE, HFILE, Wpaired, Hpaired):
+    W = np.matrix([row[1] for row in sorted(Wpaired, key = lambda tup : tup[0])])
+    f = open(WFILE, 'w')
+    for row in W:
+        np.savetxt(f, row, fmt="%.1f", delimiter=',')
+    f.close()
+    # remove last newline character in file
+    with open(WFILE, 'rb+') as filehandle:
+        filehandle.seek(-1, os.SEEK_END)
+        filehandle.truncate()
+
+    # Write out H' after transposing
+    H_transpose = np.matrix([col[1] for col in sorted(Hpaired, key = lambda tup : tup[0])]).transpose()
+    f = open(HFILE, 'w')
+    for col in H_transpose:
+        np.savetxt(f, col, fmt="%.1f", delimiter=',')
+    f.close()
+    # remove last newline character in file
+    with open(HFILE, 'rb+') as filehandle:
+        filehandle.seek(-1, os.SEEK_END)
+        filehandle.truncate()
 
 # function to extract rating tuples from the training data file
 def parseLine(inputString):
@@ -131,24 +183,15 @@ if __name__ == "__main__":
         accumulated = global_updates_a.value
         global_updates_b.unpersist()
 
-    # Write out W
-    W = np.matrix([row[1] for row in sorted(Wpaired, key = lambda tup : tup[0])])
-    f = open(WFILE, 'w')
-    for row in W:
-        np.savetxt(f, row, fmt="%.1f", delimiter=',')
-    f.close()
-    # remove last newline character in file
-    with open(WFILE, 'rb+') as filehandle:
-        filehandle.seek(-1, os.SEEK_END)
-        filehandle.truncate()
+        # write results and compute reconstruction error after every iteration, this should be disabled for actual run
+        '''
+        writeResults(WFILE, HFILE, Wpaired, Hpaired)
+        W = LoadMatrix(WFILE)
+        H = LoadMatrix(HFILE)
+        V, select = LoadSparseMatrix(INPUTFILE)
+        error = CalculateError(V,W,H,select)
+        print error
+        '''
 
-    # Write out H' after transposing
-    H_transpose = np.matrix([col[1] for col in sorted(Hpaired, key = lambda tup : tup[0])]).transpose()
-    f = open(HFILE, 'w')
-    for col in H_transpose:
-        np.savetxt(f, col, fmt="%.1f", delimiter=',')
-    f.close()
-    # remove last newline character in file
-    with open(HFILE, 'rb+') as filehandle:
-        filehandle.seek(-1, os.SEEK_END)
-        filehandle.truncate()
+    # Write out final results
+    writeResults(WFILE, HFILE, Wpaired, Hpaired)
