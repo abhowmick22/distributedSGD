@@ -5,7 +5,7 @@ Factorization with Distributed Stochastic Gradient Descent", Gemulla et al,
 KDD 2011.
 
 ## Dependencies
-Python 2.7, Numpy, Spark 1.3.0
+Python 2.7, Numpy, Scipy, Spark 1.3.0
 
 ## Instructions
 Using submit script (Ensure your PATH points to the spark bin directory)
