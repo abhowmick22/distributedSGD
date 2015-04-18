@@ -63,3 +63,20 @@ format. An example 4 X 5 matrix:
 7,14,21.5,28,35
 
 11,22.2,33,44.8,5
+
+## Running on an AWS cluster
+* Launch an AWS EMR cluster with Spark preinstalled. Copy the input data file
+to an S3 bucket and make it public.
+* Log into the master node and run the ../spark/sbin/start-master script. Note
+down the master IP and port from the generated log file.
+* Log into each of the slave machines in the cluster and run the following script:
+../spark/bin/spark-class org.apache.spark.deploy.worker.Worker 
+spark://`<Ip address of master>:<port of master>`. This will set up the cluster
+and ensure slaves can connect to the master.
+* In the master, run the job :
+../spark/bin/spark-submit --master `spark://<Ip address of master>:<port of master>` 
+dsgd\_mf.py `<num_factors>` `<num_workers>` `<num_iterations>`
+`<beta_value>` `<lambda_value>`
+`<inputV_filepath>` `<outputW_filepath>` `<outputH_filepath>`
+* In the above,
+`<inputV_filepath = s3n://<bucket-name>/../input_file.csv`

@@ -195,3 +195,8 @@ if __name__ == "__main__":
 
     # Write out final results
     writeResults(WFILE, HFILE, Wpaired, Hpaired)
+    W = LoadMatrix(WFILE)
+    H = LoadMatrix(HFILE)
+    V, select = LoadSparseMatrix(INPUTFILE)
+    error = CalculateError(V,W,H,select)
+    print 'Reconstruction error is ', error
